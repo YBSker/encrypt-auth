@@ -87,7 +87,24 @@ func encrypt(lineBytes []byte, MACKeySlice []byte, encryptionKeySlice []byte) {
 		return
 	}
 	//Initialize AES-CBC
-	initializationVector, _ := rand.Int(rand.Reader, big.NewInt(65536))
+	var count int
+	var initializationVector *big.Int
+	for count != 16 {
+		count = 0
+		temp, _ := rand.Int(rand.Reader, big.NewInt(65536))
+		for _, x := range temp.Bits() {
+			for x != 0 {
+				x &= x - 1
+				count++
+			}
+		}
+		initializationVector = temp
+	}
+
+	IVBytes := initializationVector.Bytes()
+	fmt.Println(initializationVector)
+	fmt.Println(IVBytes)
+	//fmt.Printf("%b", initializationVector)
 	firstPlainBlockBytes := messageDoublePrime[0:16]
 	firstPlainBlock := new(big.Int).SetBytes(firstPlainBlockBytes)
 	XORFirstBlock := new(big.Int).Xor(firstPlainBlock, initializationVector)
@@ -101,6 +118,7 @@ func encrypt(lineBytes []byte, MACKeySlice []byte, encryptionKeySlice []byte) {
 	XORSlice := make([]byte, AESBlock.BlockSize())
 	copy(XORSlice, encryptedSlice)
 
+	fmt.Printf("msgDoublePrime length mod 16: %d\n", len(messageDoublePrime) % 16)
 	//Repeat previous AES-CBC procedure for rest of plaintext if needed
 	for i :=16; i < len(messageDoublePrime); i += 16 {
 		plainBlockBytes := messageDoublePrime[i:i+16]
@@ -109,6 +127,8 @@ func encrypt(lineBytes []byte, MACKeySlice []byte, encryptionKeySlice []byte) {
 		XORBlock := new(big.Int).Xor(plainBlock, bigXORSlice)
 		XORBlockSlice := XORBlock.Bytes()
 
+
+		//fmt.Println(len(XORBlockSlice))
 		AESBlock.Encrypt(XORSlice, XORBlockSlice)
 		encryptedSlice = append(encryptedSlice, XORSlice...)
 	}
@@ -125,11 +145,10 @@ func main() {
 	//var outFile string
 
 	/** This section of code is to take in command line params and make sure all params are there. */
-	//if len(os.Args) < 8 {
-	//	fmt.Fprintln(os.Stderr, "Please give all params!")
-	//	return
-	//}
-
+	if len(os.Args) < 8 {
+		fmt.Fprintln(os.Stderr, "Please give all params!")
+		return
+	}
 
 	if os.Args[1] == "encrypt" {
 		encryptMode = true
@@ -139,15 +158,10 @@ func main() {
 		fmt.Print("Give valid mode please.")
 		return
 	}
-	/** TODO: WHEN I AM READY UNCOMMENT THIS BUSINESS!!
 	if os.Args[2] != "-k" || os.Args[4] != "-i" || os.Args[6] != "-o" {
 		fmt.Print("Invalid input")
 		return
 	}
-	*/
-	//TODO: END OF UNCOMMENT PART!!!
-
-	//fmt.Print(os.Args[3])
 
 	decode, err := hex.DecodeString(os.Args[3])
 	if err != nil {
