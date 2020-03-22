@@ -2,42 +2,123 @@ package main
 
 import (
 	"bufio"
-	"math"
-	"math/bits"
+	"crypto/aes"
+	"crypto/sha256"
 	"strconv"
+	//"io"
+	"math/big"
 	//"encoding/binary"
 	"encoding/hex"
+	"crypto/rand"
 	"fmt"
 	"log"
 	"os"
 )
 
-
-//RIP I was implementing sha256...Maybe will do this myself later, but for now will use golang packages to handle
-func SSIG0(x string) uint {
-	if nInt, err := strconv.ParseInt(x, 2, 64); err != nil {
-	fmt.Println(err)
+func CalcPS(x []byte) []byte {
+	var PS []byte
+	n := len(x) % 16
+	if n != 0 {
+		temp := make([]byte, 16-n)
+		for i:=0; i < 16-n; i++ {
+			temp[i] = byte((16-n)*(16-n))
+		}
+		PS = temp
 	} else {
-		n := uint(nInt)
-		ans := bits.RotateLeft(n, -7) ^ bits.RotateLeft(n, 18) ^ n>>3
-		return ans
+		temp := make([]byte, 16)
+		for i := range temp {
+			temp[i] = byte(16)
+		}
+		PS = temp
 	}
-	return -1
+	return PS
 }
 
-func SSIG1(x string) uint {
-	if nInt, err := strconv.ParseInt(x, 2, 64); err != nil {
-		fmt.Println(err)
-	} else {
-		n := uint(nInt)
-		ans := bits.RotateLeft(n, -17) ^ bits.RotateLeft(n, 19) ^ n>>10
-		return ans
+func writeToFile(fileName string, data []byte) {
+	//fmt.Println(data)
+	var stringData string
+	for _, n := range data {
+		stringData += strconv.FormatUint(uint64(n), 2)
 	}
-	return -1
+	//fmt.Println(stringData)
+	//err := ioutil.WriteFile(fileName, stringData, 0644)
+	file, err := os.Create(fileName)
+	if err != nil {
+		fmt.Println("error creating file")
+		return
+	}
+	defer file.Close()
+
+	_, err = file.WriteString(stringData)
+	if err != nil {
+		fmt.Println("error writing to file")
+		return
+	}
+}
+
+func encrypt(lineBytes []byte, MACKeySlice []byte, encryptionKeySlice []byte) {
+	hash := sha256.New()
+
+	innerPadding := make([]byte, 64)
+	outerPadding := make([]byte, 64)
+	i := 0
+	//hmac reset part in rfc4634
+	for ; i < len(MACKeySlice); i++ {
+		innerPadding[i] = MACKeySlice[i] ^ 0x36
+		outerPadding[i] = MACKeySlice[i] ^ 0x5c
+	}
+	for ; i < 64 ; i++ {
+		innerPadding[i] = 0x36
+		outerPadding[i] = 0x5c
+	}
+	firstHashInput := append(innerPadding, lineBytes...)
+	hash.Write(firstHashInput)
+	secondHashInput := append(outerPadding, hash.Sum(nil)...)
+	hash.Write(secondHashInput)
+	HMACTag := hash.Sum(nil)
+
+	messagePrime := append(lineBytes, HMACTag...)
+	messageDoublePrime := append(messagePrime, CalcPS(messagePrime)...)
+
+	//Init AES Block being used with encryption key given.
+	AESBlock, AESerr := aes.NewCipher(encryptionKeySlice)
+	if AESerr != nil {
+		fmt.Println("error in AES")
+		return
+	}
+	//Initialize AES-CBC
+	initializationVector, _ := rand.Int(rand.Reader, big.NewInt(65536))
+	firstPlainBlockBytes := messageDoublePrime[0:16]
+	firstPlainBlock := new(big.Int).SetBytes(firstPlainBlockBytes)
+	XORFirstBlock := new(big.Int).Xor(firstPlainBlock, initializationVector)
+	XORFirstBlockSlice := XORFirstBlock.Bytes()
+	//Do first round of encryption...destination of ciphertext block is encryptedSlice
+	encryptedSlice := make([]byte, AESBlock.BlockSize())
+
+	AESBlock.Encrypt(encryptedSlice, XORFirstBlockSlice)
+
+	//Theoretically the size of info put into the XOR slice should not change
+	XORSlice := make([]byte, AESBlock.BlockSize())
+	copy(XORSlice, encryptedSlice)
+
+	//Repeat previous AES-CBC procedure for rest of plaintext if needed
+	for i :=16; i < len(messageDoublePrime); i += 16 {
+		plainBlockBytes := messageDoublePrime[i:i+16]
+		plainBlock := new(big.Int).SetBytes(plainBlockBytes)
+		bigXORSlice := new(big.Int).SetBytes(XORSlice)
+		XORBlock := new(big.Int).Xor(plainBlock, bigXORSlice)
+		XORBlockSlice := XORBlock.Bytes()
+
+		AESBlock.Encrypt(XORSlice, XORBlockSlice)
+		encryptedSlice = append(encryptedSlice, XORSlice...)
+	}
+
+	ciphertext := append(initializationVector.Bytes(), encryptedSlice...)
+	writeToFile(os.Args[7], ciphertext)
 }
 
 func main() {
-	//var encryptMode bool
+	var encryptMode bool
 	//var encryptionKey uint64
 	//var MACKey uint64
 	//var input string
@@ -49,7 +130,7 @@ func main() {
 	//	return
 	//}
 
-	/** TODO: WHEN I AM READY UNCOMMENT THIS BUSINESS!!
+
 	if os.Args[1] == "encrypt" {
 		encryptMode = true
 	} else if os.Args[1] == "decrypt" {
@@ -58,7 +139,7 @@ func main() {
 		fmt.Print("Give valid mode please.")
 		return
 	}
-
+	/** TODO: WHEN I AM READY UNCOMMENT THIS BUSINESS!!
 	if os.Args[2] != "-k" || os.Args[4] != "-i" || os.Args[6] != "-o" {
 		fmt.Print("Invalid input")
 		return
@@ -100,65 +181,14 @@ func main() {
 	for scanner.Scan() {
 		lines = scanner.Text()
 	}
+	lineBytes := []byte(lines)
 
-	msgLength := strconv.FormatInt(int64(len(lines)), 2)
-	if len(msgLength) != 64 {
-		n := 64 - len(msgLength)
-		for i := 0 ; i < n; i++ {
-			msgLength = "0" + msgLength
-		}
+	if encryptMode {
+		encrypt(lineBytes, MACKeySlice, encryptionKeySlice)
 	}
 
-	if float64(len(lines)) < math.Exp2(64) {
-		lines = lines + "1"
-	}
-
-	check := len (lines) % 512
-	fmt.Printf("This is the check: %d \n", check)
-
-	/* Logic to find K for rfc4634 memo 4.1.b. */
-	if (len(lines) % 512) < 448 {
-		n := 448 - (len(lines) % 512)
-		for i := 0; i < n; i++ {
-			lines = lines + "0"
-		}
-	} else if (len(lines) % 512) > 448 {
-		n := 512 - ((len(lines) % 512) - 448)
-		for i := 0; i < n; i++ {
-			lines = lines + "0"
-		}
-	}
-	check = len (lines) % 512
-	fmt.Printf("This is the check: %d \n", check)
-	lines = lines + msgLength
-
-	check = len (lines) % 512
-	fmt.Printf("This is the check: %d \n", check)
-
-	var separatedLines []string
-	var buffer string
-	for i, r := range lines {
-		buffer = buffer + string(r)
-		if i > 0 && (i+1)%512 == 0 {
-			separatedLines = append(separatedLines, buffer)
-		}
-	}
-	fmt.Println(separatedLines)
-
-	//calculating HMAC for each 512 bit block
-	for _, block := range separatedLines {
-		//Extract 32 bit words from each 512 bit block
-		var words []string
-		var wordBuffer string
-		for i, r := range block {
-			wordBuffer = wordBuffer + string(r)
-			if i > 0 && (i+1)%32 == 0 {
-				words = append(words, buffer)
-			}
-		}
-	}
-
-	fmt.Println(lines)
+	//secondHashInput := make([]byte, len(firstHash))
+	//HMACResult := append(outerPadding, []byte(secondHash)...)
 
 	//fmt.Println(len(os.Args), os.Args)
 
