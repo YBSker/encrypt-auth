@@ -1,19 +1,99 @@
 package main
 
 import(
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/rand"
 	"encoding/hex"
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math/big"
 	"os"
 	"strconv"
 	"strings"
 )
 
-func simpleCheckSum(message []byte)
+func writeToFileCheckSum(fileName string, data []byte) {
+	var stringData string
+	for _, n := range data {
+		str := strconv.FormatUint(uint64(n), 2)
+		for len(str) != 8 {
+			str = "0" + str
+		}
+		stringData += str
+	}
+
+	file, err := os.Create(fileName)
+	if err != nil {
+		fmt.Println("error creating file")
+		return
+	}
+	defer file.Close()
+
+	_, err = file.WriteString(stringData)
+	if err != nil {
+		fmt.Println("error writing to file")
+		return
+	}
+}
+
+func simpleCheckSum(message []byte) byte  {
+	checkSum := 0
+	for i, _ := range message {
+		checkSum += int (message[i])
+	}
+	return byte(checkSum % 256)
+}
 
 func encryptCheckSum(encryptionKey []byte, message []byte) {
+	tag := simpleCheckSum(message)
+	var tagByteSlice []byte
+	tagByteSlice = append(tagByteSlice, tag)
+	messagePrime := append(tagByteSlice, message...)
 
+	var initializationVector []byte
+	for i:=0; i < 16; i++ {
+		temp, _ := rand.Int(rand.Reader, big.NewInt(256))
+		initializationVector = append(initializationVector, temp.Bytes()...)
+	}
+
+	block, err := aes.NewCipher(encryptionKey)
+	if err != nil {
+		fmt.Println("Error in getting aes block")
+		os.Exit(0)
+	}
+
+	stream := cipher.NewCTR(block, initializationVector)
+	ciphertext := make([]byte, len(messagePrime))
+	stream.XORKeyStream(ciphertext, messagePrime)
+	finalCipherText := append(initializationVector, ciphertext...)
+
+	writeToFileCheckSum(os.Args[7], finalCipherText)
+}
+
+func decryptCheckSum(encryptionKey []byte, message []byte) {
+	var initializationVector []byte
+	initializationVector = append(initializationVector, message[:16]...)
+
+	block, err := aes.NewCipher(encryptionKey)
+	if err != nil {
+		fmt.Println("Error in getting aes block")
+		os.Exit(0)
+	}
+
+	stream := cipher.NewCTR(block, initializationVector)
+	messagePrime := make([]byte, len(message[16:]))
+	stream.XORKeyStream(messagePrime, message[16:])
+
+	plainText := messagePrime[1:]
+	tag := messagePrime[0]
+	if tag != simpleCheckSum(plainText) {
+		fmt.Println("INVALID CHECKSUM")
+		os.Exit(0)
+	}
+
+	writeToFileCheckSum(os.Args[7], plainText)
 }
 
 func main() {
@@ -60,8 +140,8 @@ func main() {
 	}
 
 	if encryptMode {
-		encryptCheckSum(lineBytes, encryptionKeySlice)
+		encryptCheckSum(encryptionKeySlice, lineBytes)
 	} else {
-		decryptCheckSum(lineBytes, encryptionKeySlice)
+		decryptCheckSum(encryptionKeySlice, lineBytes)
 	}
 }
