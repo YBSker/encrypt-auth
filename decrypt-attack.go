@@ -34,7 +34,12 @@ func getTestOutput(cipherTextBlock []byte, XORTextBlock []byte) string {
 	testBlock := append(XORTextBlock, cipherTextBlock...)
 	//fmt.Println(stringify(testBlock))
 	//Test if the new byte value at end of 16 byte block is a valid padding...
-	testCmd := exec.Command("decrypt-test", "-i", os.Args[2], stringify(testBlock))
+
+	err := ioutil.WriteFile("decrypt-attack-out.txt", []byte(stringify(testBlock)), 0644)
+	if err != nil {
+		fmt.Println("Error in file write.")
+	}
+	testCmd := exec.Command("decrypt-test", "-i", os.Args[2])
 	//testCmd.Run()
 	output, _ := testCmd.Output()
 	//fmt.Println(string(output))
@@ -86,7 +91,7 @@ func main() {
 	var decodedTextBytes []byte
 
 	//testIVProcess := make([]byte, 16)
-	fmt.Println(lineBytes)
+	//fmt.Println(lineBytes)
 
 	for i := 16; i < len(lineBytes); i += 16 {
 		fmt.Printf("We are in place: %d\n", i)
@@ -101,7 +106,7 @@ func main() {
 		for currentPlace < 16 {
 			//If we do not have a block that is all "16" byte 16 times (valid padding)...
 			if !testPurePadding(cipherTextBlock, originalIV) {
-				fmt.Println("Im inside after purePaddingTest")
+				//fmt.Println("Im inside after purePaddingTest")
 				for k, _ := range testIV {
 					placeTestIV := make([]byte, len(testIV))
 					copy(placeTestIV, testIV)
@@ -122,7 +127,7 @@ func main() {
 
 				// Change everything after currentplace to currentplace + 1
 				for l := 0; l < currentPlace; l++ {
-					fmt.Println(currentPlace)
+					//fmt.Println(currentPlace)
 					XORIntermediary := byte(currentPlace) ^ byte(currentPlace+1)
 					//fmt.Println("THIS IS THE XORINTERMEDIARYTHINGY")
 					//fmt.Println(XORIntermediary)
@@ -134,10 +139,10 @@ func main() {
 
 				for j := 0; j < 256; j++ {
 					testIV[len(testIV)-1-currentPlace] = byte(j)
-					fmt.Println(testIV[len(testIV)-1])
-					fmt.Println(byte(j))
+					//fmt.Println(testIV[len(testIV)-1])
+					//fmt.Println(byte(j))
 					output := getTestOutput(cipherTextBlock, testIV)
-					fmt.Println(output)
+					//fmt.Println(output)
 					//if output != "INVALIDPADDING" {
 					//	rightValues = append(rightValues, byte(j))
 					//
@@ -200,9 +205,12 @@ func main() {
 	messagePrime := decodedTextBytes[:len(decodedTextBytes)-int(n)]
 	plainText := messagePrime[:len(messagePrime)-32]
 
-	ans := stringify(plainText)
-	fmt.Println(ans)
-	cmd := exec.Command("decrypt-test", "-i", os.Args[2], ans)
+	//fmt.Println(ans)
+	err = ioutil.WriteFile("decrypt-attack-out.txt", []byte(stringify(plainText)), 0644)
+	if err != nil {
+		fmt.Println("Error in file write.")
+	}
+	cmd := exec.Command("decrypt-test", "-i", os.Args[2])
 	output, _ := cmd.Output()
 	//if err != nil {
 	//	fmt.Println("Issue with getting output of test exec")
@@ -211,9 +219,10 @@ func main() {
 	out := strings.TrimSpace(string(output))
 	out = strings.Replace(out, " ", "", -1)
 	if out == "SUCCESS" {
-		fmt.Println("Yay")
+		fmt.Println(stringify(plainText))
 	} else {
-		fmt.Println("fuuuuck")
+		fmt.Println("Error in attack")
+		os.Exit(0)
 	}
 
 }
