@@ -119,7 +119,7 @@ func encrypt(lineBytes []byte, MACKeySlice []byte, encryptionKeySlice []byte) {
 	copy(XORSlice, encryptedSlice)
 
 	//Repeat previous AES-CBC procedure for rest of plaintext if needed
-	for i := 16; i <= len(messageDoublePrime); i += 16 {
+	for i := 16; i < len(messageDoublePrime); i += 16 {
 		plainBlockBytes := messageDoublePrime[i : i+16]
 		plainBlock := new(big.Int).SetBytes(plainBlockBytes)
 		bigXORSlice := new(big.Int).SetBytes(XORSlice)

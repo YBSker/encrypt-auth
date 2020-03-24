@@ -2,10 +2,15 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f66857cd-0923-45ec-809c-66c02dbc140c" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/decrypt-attack-chk.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/decrypt-attack.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/decrypt-test.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/encrypt-auth.exe" beforeDir="false" afterPath="$PROJECT_DIR$/encrypt-auth.exe" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/encrypt_auth.go" beforeDir="false" afterPath="$PROJECT_DIR$/encrypt_auth.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/encrypt_auth.go" beforeDir="false" afterPath="$PROJECT_DIR$/encrypt-auth.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/output.txt" beforeDir="false" afterPath="$PROJECT_DIR$/output.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/testEncrypt.txt" beforeDir="false" afterPath="$PROJECT_DIR$/testEncrypt.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/testfile.txt" beforeDir="false" afterPath="$PROJECT_DIR$/testfile.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -67,6 +72,10 @@
     <option name="version" value="1" />
   </component>
   <component name="WindowStateProjectService">
+    <state x="1634" y="152" key="#go_build_encrypt-auth" timestamp="1585002727330">
+      <screen x="0" y="0" width="2560" height="1040" />
+    </state>
+    <state x="1634" y="152" key="#go_build_encrypt-auth/0.0.2560.1040/2560.0.1920.1040@0.0.2560.1040" timestamp="1585002727330" />
     <state width="1234" height="257" key="GridCell.Tab.0.bottom" timestamp="1584921111248">
       <screen x="0" y="0" width="2560" height="1040" />
     </state>
@@ -87,5 +96,18 @@
     </state>
     <state width="1234" height="257" key="GridCell.Tab.0.right/0.0.2560.1040/2560.0.1920.1040@0.0.2560.1040" timestamp="1584921111248" />
     <state width="1234" height="258" key="GridCell.Tab.0.right/0.0.2560.1040/2560.0.1920.1040@2560.0.1920.1040" timestamp="1583284989089" />
+    <state x="1458" y="-14" width="942" height="1019" key="dock-window-1" timestamp="1585011428850">
+      <screen x="0" y="0" width="2560" height="1040" />
+    </state>
+    <state x="3031" y="187" width="942" height="1019" key="dock-window-1/0.0.2560.1040/2560.0.1920.1040@0.0.2560.1040" timestamp="1585001514783" />
+    <state x="1458" y="-14" width="942" height="1019" key="dock-window-1/0.0.2560.1040/2560.0.1920.1040@2560.0.1920.1040" timestamp="1585011428850" />
+    <state x="3513" y="0" width="974" height="1047" key="dock-window-2" timestamp="1584966317087">
+      <screen x="2560" y="0" width="1920" height="1040" />
+    </state>
+    <state x="3513" y="0" width="974" height="1047" key="dock-window-2/0.0.2560.1040/2560.0.1920.1040@0.0.2560.1040" timestamp="1584966317087" />
+    <state x="1583" y="230" width="672" height="678" key="search.everywhere.popup" timestamp="1584971263831">
+      <screen x="0" y="0" width="2560" height="1040" />
+    </state>
+    <state x="1583" y="230" width="672" height="678" key="search.everywhere.popup/0.0.2560.1040/2560.0.1920.1040@0.0.2560.1040" timestamp="1584971263831" />
   </component>
 </project>
