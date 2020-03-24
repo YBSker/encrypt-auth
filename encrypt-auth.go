@@ -174,6 +174,8 @@ func decrypt(lineBytes []byte, MACKeySlice []byte, encryptionKeySlice []byte) {
 		}
 	}
 	messagePrime := messageDoublePrime[:len(messageDoublePrime)-int(n)]
+	fmt.Println(messagePrime)
+
 	plainText := messagePrime[:len(messagePrime)-32]
 	//Check if MAC tags are matching
 	HMACTag := messagePrime[len(messagePrime)-32:]
