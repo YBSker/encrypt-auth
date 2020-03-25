@@ -57,6 +57,7 @@ func encryptCheckSum(encryptionKey []byte, message []byte) {
 		temp, _ := rand.Int(rand.Reader, big.NewInt(256))
 		initializationVector = append(initializationVector, temp.Bytes()...)
 	}
+	//fmt.Println(initializationVector)
 
 	block, err := aes.NewCipher(encryptionKey)
 	if err != nil {
@@ -92,7 +93,7 @@ func decryptCheckSum(encryptionKey []byte, message []byte) {
 		fmt.Println("INVALID CHECKSUM")
 		os.Exit(0)
 	}
-
+	fmt.Println(messagePrime)
 	writeToFileCheckSum(os.Args[7], plainText)
 }
 

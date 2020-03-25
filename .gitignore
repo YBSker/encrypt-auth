@@ -8,3 +8,11 @@ decrypt-attack.exe
 encrypt-auth.exe
 encrypt-checksum.exe
 encrypt-auth.exe
+shortTestPadding01.txt
+shortTestPadding01Encode.txt
+superShort.txt
+superShortEncode.txt
+output.txt
+decrypt-chk-test.exe
+decrypt-attack-chk.exe
+checksumDecryptAttempt.txt
