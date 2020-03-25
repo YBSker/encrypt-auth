@@ -139,8 +139,14 @@ func main() {
 	//fmt.Println(output)
 	//fmt.Println(stringifyCheckSum(output))
 
+	var stringAns []byte
+	for i := 0; i < len(stringifyCheckSum(plainTextBytes)); i += 8 {
+		n, _ := strconv.ParseUint(stringifyCheckSum(plainTextBytes)[i:i+8], 2, 8)
+		stringAns = append(stringAns, byte(n))
+	}
+
 	if string(output) == "SUCCESS" {
-		fmt.Println(stringifyCheckSum(plainTextBytes))
+		fmt.Println(string(stringAns))
 		//fmt.Println("Successful attack!")
 	} else {
 		//fmt.Println(stringifyCheckSum(plainTextBytes))

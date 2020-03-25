@@ -174,7 +174,6 @@ func decrypt(lineBytes []byte, MACKeySlice []byte, encryptionKeySlice []byte) {
 		}
 	}
 	messagePrime := messageDoublePrime[:len(messageDoublePrime)-int(n)]
-	fmt.Println(messagePrime)
 
 	plainText := messagePrime[:len(messagePrime)-32]
 	//Check if MAC tags are matching
@@ -227,7 +226,6 @@ func main() {
 	}
 	text := strings.TrimSpace(string(lines))
 	text = strings.Replace(text, " ", "", -1)
-	//fmt.Println(text)
 	var lineBytes []byte
 	for i :=0; i < len(text); i += 8 {
 		value, _ := strconv.ParseUint(text[i:i+8], 2, 8)

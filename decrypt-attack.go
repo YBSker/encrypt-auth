@@ -94,7 +94,7 @@ func main() {
 	//var endPlace int
 
 	for i := 16; i < len(lineBytes); i += 16 {
-		fmt.Printf("We are in place: %d\n", i)
+		//fmt.Printf("We are in place: %d\n", i)
 		testIV := lineBytes[i-16 : i]
 
 		originalIV := make([]byte, 16)
@@ -126,7 +126,7 @@ func main() {
 
 			// Change everything after currentplace to currentplace + 1
 			for l := 0; l < currentPlace; l++ {
-				fmt.Println(currentPlace)
+				//fmt.Println(currentPlace)
 				XORIntermediary := byte(currentPlace) ^ byte(currentPlace+1)
 				//fmt.Println("THIS IS THE XORINTERMEDIARYTHINGY")
 				//fmt.Println(XORIntermediary)

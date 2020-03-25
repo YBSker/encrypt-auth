@@ -129,7 +129,7 @@ func decryptTest(lineBytes []byte, hardKey []byte, hardcode bool) string {
 
 func main() {
 	//TODO: actually fuckit
-	if len(os.Args) < 4 {
+	if len(os.Args) < 3 {
 		fmt.Fprintln(os.Stderr, "Please give all params!")
 		return
 	}
@@ -169,21 +169,21 @@ func main() {
 	//reader := bufio.NewReader(os.Stdin)
 	//proposedDecryption, _ := reader.ReadString('\n')
 
-	proposedDecryption := os.Args[3]
-	proposedDecryptionString := strings.TrimSpace(proposedDecryption)
+	proposedDecryption, _ := ioutil.ReadFile("decrypt-attack-out.txt")
+	proposedDecryptionString := strings.TrimSpace(string(proposedDecryption))
 	proposedDecryptionString = strings.Replace(proposedDecryptionString, " ", "", -1)
 
-
+	var proposedDecryptBytes []byte
+	for i := 0; i < len(proposedDecryption); i += 8 {
+		value, _ := strconv.ParseUint(proposedDecryptionString[i:i+8], 2, 8)
+		proposedDecryptBytes = append(proposedDecryptBytes, byte(value))
+	}
 
 	if decryptedCipherText == proposedDecryptionString {
 		fmt.Print("SUCCESS")
 		os.Exit(0)
 	}
-	var proposedDecryptBytes []byte
-	for i := 0; i < len(proposedDecryption); i += 8 {
-		value, _ := strconv.ParseUint(proposedDecryption[i:i+8], 2, 8)
-		proposedDecryptBytes = append(proposedDecryptBytes, byte(value))
-	}
+
 
 	decryptTest(proposedDecryptBytes, hardKey, false)
 

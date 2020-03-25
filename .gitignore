@@ -16,3 +16,9 @@ output.txt
 decrypt-chk-test.exe
 decrypt-attack-chk.exe
 checksumDecryptAttempt.txt
+decrypt-attack-out.txt
+decrypt-attack.exe
+decrypt-test.exe
+encrypt-auth.exe
+evenShorterEncrypt.txt
+output.txt
